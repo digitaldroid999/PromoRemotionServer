@@ -1,0 +1,130 @@
+import express from 'express';
+import fs from 'fs/promises';
+import { TEMPLATE_MAP } from '../templates/templateMap.js';
+import { renderVideo } from '../render/renderVideo.js';
+import { supabase } from '../services/supabase.js';
+import { createTask, updateTask } from '../utils/taskManager.js';
+
+const router = express.Router();
+
+// Helper: upload video to Supabase
+async function uploadVideo(filePath, fileName) {
+  const buffer = await fs.readFile(filePath);
+
+  const { data, error } = await supabase.storage
+    .from('temp')
+    .upload(`uploaded_videos/${fileName}`, buffer, { contentType: 'video/mp4', upsert: true });
+
+  if (error) throw error;
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('temp')
+    .getPublicUrl(`uploaded_videos/${fileName}`);
+
+  return publicUrl;
+}
+
+// Background video generation processor
+async function processVideoGeneration(taskId, template, product, imageUrl) {
+  try {
+    const compositionId = TEMPLATE_MAP[template];
+
+    console.log(`🎬 [${taskId}] Starting video generation...`);
+    console.log(`Template: ${template}`);
+    console.log(`Image URL: ${imageUrl}`);
+
+    // Update status to processing
+    await updateTask(taskId, {
+      status: 'processing',
+      stage: 'bundling',
+      progress: 10,
+    });
+
+    const inputProps = {
+      product: typeof product === 'string' ? JSON.parse(product) : product,
+      imageUrl,
+    };
+
+    console.log(`📦 [${taskId}] Bundling Remotion project...`);
+    await updateTask(taskId, {
+      status: 'processing',
+      stage: 'rendering',
+      progress: 30,
+    });
+
+    const videoPath = await renderVideo({ compositionId, inputProps });
+
+    console.log(`☁️  [${taskId}] Uploading video to Supabase...`);
+    await updateTask(taskId, {
+      status: 'processing',
+      stage: 'uploading',
+      progress: 80,
+    });
+
+    const videoUrl = await uploadVideo(videoPath, `video-${Date.now()}.mp4`);
+
+    console.log(`🧹 [${taskId}] Cleaning up temporary files...`);
+    await fs.unlink(videoPath);
+
+    console.log(`✅ [${taskId}] Video generation completed!`);
+    await updateTask(taskId, {
+      status: 'completed',
+      stage: 'done',
+      progress: 100,
+      videoUrl,
+    });
+  } catch (err) {
+    console.error(`❌ [${taskId}] Video generation failed:`, err);
+    await updateTask(taskId, {
+      status: 'failed',
+      stage: 'error',
+      error: err.message,
+    });
+  }
+}
+
+router.post('/', async (req, res) => {
+  try {
+    const { template, product, imageUrl } = req.body;
+
+    // Validation
+    if (!TEMPLATE_MAP[template]) {
+      return res.status(400).json({ error: 'Invalid template' });
+    }
+
+    if (!imageUrl) {
+      return res.status(400).json({ error: 'Product imageUrl is required' });
+    }
+
+    if (!product) {
+      return res.status(400).json({ error: 'Product data is required' });
+    }
+
+    // Create task
+    const task = await createTask({
+      template,
+      product: typeof product === 'string' ? JSON.parse(product) : product,
+      imageUrl,
+      status: 'pending',
+      stage: 'queued',
+      progress: 0,
+    });
+
+    // Start processing in background (don't await)
+    processVideoGeneration(task.id, template, product, imageUrl).catch(err => {
+      console.error('Unhandled error in video generation:', err);
+    });
+
+    // Return task ID immediately
+    res.json({
+      taskId: task.id,
+      status: 'pending',
+      message: 'Video generation started. Use /tasks/:taskId to check status.',
+    });
+  } catch (err) {
+    console.error('❌ Failed to create video generation task:', err);
+    res.status(500).json({ error: 'Failed to create task', details: err.message });
+  }
+});
+
+export default router;
