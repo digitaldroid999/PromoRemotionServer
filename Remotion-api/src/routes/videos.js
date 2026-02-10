@@ -85,19 +85,28 @@ async function processVideoGeneration(taskId, template, product, imageUrl) {
 
 router.post('/', async (req, res) => {
   try {
+    console.log('📥 [REQUEST] POST /videos');
+    console.log('Request Body:', JSON.stringify(req.body, null, 2));
+    
     const { template, product, imageUrl } = req.body;
 
     // Validation
     if (!TEMPLATE_MAP[template]) {
-      return res.status(400).json({ error: 'Invalid template' });
+      const errorResponse = { error: 'Invalid template' };
+      console.log('❌ [RESPONSE] 400:', errorResponse);
+      return res.status(400).json(errorResponse);
     }
 
     if (!imageUrl) {
-      return res.status(400).json({ error: 'Product imageUrl is required' });
+      const errorResponse = { error: 'Product imageUrl is required' };
+      console.log('❌ [RESPONSE] 400:', errorResponse);
+      return res.status(400).json(errorResponse);
     }
 
     if (!product) {
-      return res.status(400).json({ error: 'Product data is required' });
+      const errorResponse = { error: 'Product data is required' };
+      console.log('❌ [RESPONSE] 400:', errorResponse);
+      return res.status(400).json(errorResponse);
     }
 
     // Create task
@@ -116,14 +125,19 @@ router.post('/', async (req, res) => {
     });
 
     // Return task ID immediately
-    res.json({
+    const successResponse = {
       taskId: task.id,
       status: 'pending',
       message: 'Video generation started. Use /tasks/:taskId to check status.',
-    });
+    };
+    
+    console.log('✅ [RESPONSE] 200:', JSON.stringify(successResponse, null, 2));
+    res.json(successResponse);
   } catch (err) {
     console.error('❌ Failed to create video generation task:', err);
-    res.status(500).json({ error: 'Failed to create task', details: err.message });
+    const errorResponse = { error: 'Failed to create task', details: err.message };
+    console.log('❌ [RESPONSE] 500:', errorResponse);
+    res.status(500).json(errorResponse);
   }
 });
 

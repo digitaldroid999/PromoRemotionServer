@@ -7,27 +7,40 @@ const router = express.Router();
 router.get('/:taskId', async (req, res) => {
   try {
     const { taskId } = req.params;
+    console.log(`📥 [REQUEST] GET /tasks/${taskId}`);
+    
     const task = await getTask(taskId);
     
     if (!task) {
-      return res.status(404).json({ error: 'Task not found' });
+      const errorResponse = { error: 'Task not found' };
+      console.log('❌ [RESPONSE] 404:', errorResponse);
+      return res.status(404).json(errorResponse);
     }
     
+    console.log('✅ [RESPONSE] 200:', JSON.stringify(task, null, 2));
     res.json(task);
   } catch (error) {
     console.error('Error fetching task:', error);
-    res.status(500).json({ error: 'Failed to fetch task', details: error.message });
+    const errorResponse = { error: 'Failed to fetch task', details: error.message };
+    console.log('❌ [RESPONSE] 500:', errorResponse);
+    res.status(500).json(errorResponse);
   }
 });
 
 // Get all tasks (optional: for debugging/admin)
 router.get('/', async (req, res) => {
   try {
+    console.log('📥 [REQUEST] GET /tasks');
+    
     const tasks = await getAllTasks();
+    
+    console.log(`✅ [RESPONSE] 200: ${tasks.length} tasks found`);
     res.json(tasks);
   } catch (error) {
     console.error('Error fetching tasks:', error);
-    res.status(500).json({ error: 'Failed to fetch tasks', details: error.message });
+    const errorResponse = { error: 'Failed to fetch tasks', details: error.message };
+    console.log('❌ [RESPONSE] 500:', errorResponse);
+    res.status(500).json(errorResponse);
   }
 });
 
