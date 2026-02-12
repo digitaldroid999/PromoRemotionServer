@@ -7,6 +7,51 @@ import { createTask, updateTask } from '../utils/taskManager.js';
 
 const router = express.Router();
 
+// Helper: Transform product data based on template
+function transformProductData(template, product) {
+  if (typeof product === 'string') {
+    product = JSON.parse(product);
+  }
+
+  // Extract base fields from product
+  const name = product.name || product.title || '';
+  const price = product.price || product.salePrice || '$0.00';
+  const rating = product.rating || 4.5;
+  const reviewCount = product.reviewCount || 0;
+
+  // Transform based on template type
+  switch (template) {
+    case 'product-modern-v1':
+      // ProductHero template expects: title, price, rating
+      return {
+        title: name,
+        price: price,
+        rating: rating,
+      };
+    
+    case 'product-minimal-v1':
+      // FullScreenSocialProof template expects: title, salePrice/originalPrice, rating, reviewCount, reviews
+      return {
+        title: name.toUpperCase(),
+        originalPrice: product.originalPrice || '$99.00',
+        salePrice: price,
+        rating: rating,
+        reviewCount: reviewCount,
+        reviews: product.reviews || [
+          '🔥 HIGHLY RECOMMENDED!',
+          'EXCELLENT QUALITY!',
+          'WORTH EVERY PENNY!',
+          'FAST DELIVERY!',
+          'PERFECT PRODUCT!'
+        ],
+      };
+    
+    default:
+      // Fallback: return original product data
+      return product;
+  }
+}
+
 // Helper: upload video to Supabase
 async function uploadVideo(filePath, fileName) {
   const buffer = await fs.readFile(filePath);
@@ -40,8 +85,12 @@ async function processVideoGeneration(taskId, template, product, imageUrl) {
       progress: 10,
     });
 
+    // Transform product data for the specific template
+    const transformedProduct = transformProductData(template, product);
+    console.log(`🔄 [${taskId}] Transformed product data:`, JSON.stringify(transformedProduct, null, 2));
+
     const inputProps = {
-      product: typeof product === 'string' ? JSON.parse(product) : product,
+      product: transformedProduct,
       imageUrl,
     };
 
@@ -89,6 +138,8 @@ router.post('/', async (req, res) => {
     console.log('Request Body:', JSON.stringify(req.body, null, 2));
     
     const { template, product, imageUrl } = req.body;
+    console.log(`Received request for template: ${template}`);
+    console.log(`Received request for product: ${product}`);
 
     // Validation
     if (!TEMPLATE_MAP[template]) {
