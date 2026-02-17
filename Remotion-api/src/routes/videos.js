@@ -33,7 +33,7 @@ function transformProductData(template, product) {
       // FullScreenSocialProof template expects: title, salePrice/originalPrice, rating, reviewCount, reviews
       return {
         title: name.toUpperCase(),
-        originalPrice: product.originalPrice || '$99.00',
+        originalPrice: product.originalPrice || price * 1.2,
         salePrice: price,
         rating: rating,
         reviewCount: reviewCount,
@@ -41,7 +41,7 @@ function transformProductData(template, product) {
           '🔥 HIGHLY RECOMMENDED!',
           'EXCELLENT QUALITY!',
           'WORTH EVERY PENNY!',
-          'FAST DELIVERY!',
+          'FAST DELIVERY! TRY IT!',
           'PERFECT PRODUCT!'
         ],
       };
