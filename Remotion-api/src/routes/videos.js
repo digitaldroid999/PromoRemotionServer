@@ -19,6 +19,25 @@ function transformProductData(template, product) {
   const rating = product.rating || 4.5;
   const reviewCount = product.reviewCount || 0;
 
+  // Helper to parse price string to number
+  const parsePrice = (priceStr) => {
+    if (typeof priceStr === 'number') return priceStr;
+    if (!priceStr) return 0;
+    // Remove all non-numeric characters except decimal points
+    const cleanPrice = priceStr.toString().replace(/[^0-9.]/g, '');
+    const parsed = parseFloat(cleanPrice);
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
+  // Helper to format price
+  const formatPrice = (amount) => {
+    // If already formatted with $, return as-is
+    if (typeof amount === 'string' && amount.includes('$')) return amount;
+    // If it's a number or numeric string, format it
+    const numAmount = typeof amount === 'number' ? amount : parseFloat(amount);
+    return isNaN(numAmount) ? '$0.00' : `$${numAmount.toFixed(2)}`;
+  };
+
   // Transform based on template type
   switch (template) {
     case 'product-modern-v1':
@@ -31,10 +50,15 @@ function transformProductData(template, product) {
     
     case 'product-minimal-v1':
       // FullScreenSocialProof template expects: title, salePrice/originalPrice, rating, reviewCount, reviews
+      const salePriceNum = parsePrice(price);
+      const originalPriceNum = product.originalPrice 
+        ? parsePrice(product.originalPrice) 
+        : salePriceNum * 1.5; // 33% discount by default
+      
       return {
         title: name.toUpperCase(),
-        originalPrice: product.originalPrice || price * 1.2,
-        salePrice: price,
+        originalPrice: formatPrice(originalPriceNum),
+        salePrice: formatPrice(salePriceNum),
         rating: rating,
         reviewCount: reviewCount,
         reviews: product.reviews || [
