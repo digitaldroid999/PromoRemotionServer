@@ -12,8 +12,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/videos', videoRoutes);
+// More specific path first so /videos_shopify is not matched by /videos
 app.use('/videos_shopify', videoShopifyRoutes);
+app.use('/videos', videoRoutes);
 app.use('/tasks', taskRoutes);
 
 app.get('/health', (req, res) => {
