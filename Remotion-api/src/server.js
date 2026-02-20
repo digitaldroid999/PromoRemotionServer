@@ -12,8 +12,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// More specific path first so /videos_shopify is not matched by /videos
-app.use('/videos_shopify', videoShopifyRoutes);
+// Use /shopify/videos so /videos never matches it (Express matches by prefix)
+app.use('/shopify/videos', videoShopifyRoutes);
 app.use('/videos', videoRoutes);
 app.use('/tasks', taskRoutes);
 
@@ -29,7 +29,7 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => {
   console.log(`API running on http://localhost:${PORT}`);
-  console.log('  POST /videos_shopify – start Shopify video generation');
-  console.log('  GET  /videos_shopify  – check this is Remotion API');
+  console.log('  POST /shopify/videos – start Shopify video generation');
+  console.log('  GET  /shopify/videos – check this is Remotion API');
   console.log('  GET  /tasks/:id       – task status');
 });

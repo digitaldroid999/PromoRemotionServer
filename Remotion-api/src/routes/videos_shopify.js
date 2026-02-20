@@ -149,7 +149,7 @@ router.get('/', (_req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    console.log('📥 [REQUEST] POST /videos_shopify');
+    console.log('📥 [REQUEST] POST /shopify/videos');
     console.log('Request Body:', JSON.stringify(req.body, null, 2));
 
     const { template, product, imageUrl, user_id, short_id } = req.body;
