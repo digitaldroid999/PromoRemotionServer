@@ -137,6 +137,16 @@ async function processVideoGenerationShopify(taskId, template, product, imageUrl
   }
 }
 
+// GET so callers can verify this is the Remotion API (not React Router)
+router.get('/', (_req, res) => {
+  res.set('X-Service', 'Remotion-API');
+  res.json({
+    service: 'Remotion API',
+    message: 'Use POST to start video generation',
+    postBody: { template: 'string', product: 'object', imageUrl: 'string', user_id: 'string', short_id: 'string' },
+  });
+});
+
 router.post('/', async (req, res) => {
   try {
     console.log('📥 [REQUEST] POST /videos_shopify');

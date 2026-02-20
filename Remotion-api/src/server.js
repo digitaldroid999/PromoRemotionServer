@@ -21,7 +21,15 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// 404 fallback (JSON so we know it's this API, not another server)
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found', path: req.method + ' ' + req.path });
+});
+
 const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => {
   console.log(`API running on http://localhost:${PORT}`);
+  console.log('  POST /videos_shopify – start Shopify video generation');
+  console.log('  GET  /videos_shopify  – check this is Remotion API');
+  console.log('  GET  /tasks/:id       – task status');
 });
