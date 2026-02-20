@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 const router = express.Router();
 
 // Base directory for Shopify app generated videos (relative to this file)
-const SHOPIFY_PUBLIC_BASE = path.join(__dirname, '../../../ShopifyApp/ShopifyApp-PromoNexAI-/public/generated_video');
+const SHOPIFY_PUBLIC_BASE = path.join(__dirname, '../../../../../ShopifyApp/ShopifyApp-PromoNexAI-/public/generated_video');
 
 // Helper: Transform product data based on template
 function transformProductData(template, product) {
