@@ -18,6 +18,8 @@ router.get('/:taskId', async (req, res) => {
     }
     
     console.log('✅ [RESPONSE] 200:', JSON.stringify(task, null, 2));
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.set('Pragma', 'no-cache');
     res.json(task);
   } catch (error) {
     console.error('Error fetching task:', error);

@@ -121,12 +121,14 @@ async function processVideoGenerationShopify(taskId, template, product, imageUrl
     await fs.unlink(videoPath);
 
     console.log(`✅ [${taskId}] Shopify video generation completed!`);
-    await updateTask(taskId, {
+    const completedTask = await updateTask(taskId, {
       status: 'completed',
       stage: 'done',
       progress: 100,
       videoUrl,
     });
+    console.log(`✅ [${taskId}] Task updated to completed. Video URL: ${videoUrl}`);
+    console.log(`📦 [${taskId}] Final task state:`, JSON.stringify(completedTask, null, 2));
   } catch (err) {
     console.error(`❌ [${taskId}] Shopify video generation failed:`, err);
     await updateTask(taskId, {
