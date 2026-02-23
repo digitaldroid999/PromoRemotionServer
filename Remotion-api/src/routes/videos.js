@@ -159,7 +159,7 @@ async function processVideoGeneration(taskId, template, product, imageUrl) {
       progress: 80,
     });
 
-    const videoUrl = await uploadVideo(videoPath, `video-${Date.now()}.mp4`);x
+    const videoUrl = await uploadVideo(videoPath, `video-${Date.now()}.mp4`);
 
     console.log(`🧹 [${taskId}] Cleaning up temporary files...`);
     await fs.unlink(videoPath);
