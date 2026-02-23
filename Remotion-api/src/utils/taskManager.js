@@ -72,14 +72,22 @@ export async function updateTask(taskId, updates) {
   const tasks = await loadTasks();
   
   if (!tasks[taskId]) {
-    throw new Error(`Task ${taskId} not found`);
+    // If task doesn't exist (e.g., after file corruption), try to recreate it
+    console.warn(`⚠️  Task ${taskId} not found. Creating new task entry.`);
+    tasks[taskId] = {
+      id: taskId,
+      status: 'processing',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...updates,
+    };
+  } else {
+    tasks[taskId] = {
+      ...tasks[taskId],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
   }
-  
-  tasks[taskId] = {
-    ...tasks[taskId],
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  };
   
   await saveTasks(tasks);
   return tasks[taskId];

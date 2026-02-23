@@ -125,19 +125,30 @@ async function processVideoGeneration(taskId, template, product, imageUrl) {
       progress: 30,
     });
 
-    // Render video with real-time progress updates
+    // Render video with real-time progress updates (throttled to reduce I/O)
+    let lastReportedProgress = 30;
     const videoPath = await renderVideo({ 
       compositionId, 
       inputProps,
       onProgress: async (percent) => {
-        // Update task with real rendering progress (30% to 80% range)
-        // Map 0-100% rendering to 30-80% overall progress
-        const overallProgress = 30 + Math.round((percent / 100) * 50);
-        await updateTask(taskId, {
-          status: 'processing',
-          stage: 'rendering',
-          progress: overallProgress,
-        });
+        try {
+          // Update task with real rendering progress (30% to 80% range)
+          // Map 0-100% rendering to 30-80% overall progress
+          const overallProgress = 30 + Math.round((percent / 100) * 50);
+          
+          // Throttle: Only update if progress increased by at least 5% or reached 80%
+          if (overallProgress - lastReportedProgress >= 5 || overallProgress >= 80) {
+            lastReportedProgress = overallProgress;
+            await updateTask(taskId, {
+              status: 'processing',
+              stage: 'rendering',
+              progress: overallProgress,
+            });
+          }
+        } catch (err) {
+          // Gracefully handle task update errors (e.g., if tasks.json got corrupted)
+          console.warn(`⚠️  [${taskId}] Failed to update progress: ${err.message}`);
+        }
       }
     });
 
