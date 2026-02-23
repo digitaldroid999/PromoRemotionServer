@@ -8,7 +8,7 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export async function renderVideo({ compositionId, inputProps }) {
+export async function renderVideo({ compositionId, inputProps, onProgress }) {
   const tmpDir = path.join(process.cwd(), 'tmp');
   try {
     await fs.mkdir(tmpDir, { recursive: true });
@@ -42,6 +42,11 @@ export async function renderVideo({ compositionId, inputProps }) {
     onProgress: ({ progress }) => {
       const percent = Math.round(progress * 100);
       process.stdout.write(`\r⏳ Generating: ${percent}%`);
+      
+      // Call the callback if provided for real-time progress updates
+      if (onProgress) {
+        onProgress(percent);
+      }
     },
   });
 

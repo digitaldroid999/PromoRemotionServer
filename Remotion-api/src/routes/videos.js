@@ -125,7 +125,21 @@ async function processVideoGeneration(taskId, template, product, imageUrl) {
       progress: 30,
     });
 
-    const videoPath = await renderVideo({ compositionId, inputProps });
+    // Render video with real-time progress updates
+    const videoPath = await renderVideo({ 
+      compositionId, 
+      inputProps,
+      onProgress: async (percent) => {
+        // Update task with real rendering progress (30% to 80% range)
+        // Map 0-100% rendering to 30-80% overall progress
+        const overallProgress = 30 + Math.round((percent / 100) * 50);
+        await updateTask(taskId, {
+          status: 'processing',
+          stage: 'rendering',
+          progress: overallProgress,
+        });
+      }
+    });
 
     console.log(`☁️  [${taskId}] Uploading video to Supabase...`);
     await updateTask(taskId, {
@@ -134,7 +148,7 @@ async function processVideoGeneration(taskId, template, product, imageUrl) {
       progress: 80,
     });
 
-    const videoUrl = await uploadVideo(videoPath, `video-${Date.now()}.mp4`);
+    const videoUrl = await uploadVideo(videoPath, `video-${Date.now()}.mp4`);x
 
     console.log(`🧹 [${taskId}] Cleaning up temporary files...`);
     await fs.unlink(videoPath);
