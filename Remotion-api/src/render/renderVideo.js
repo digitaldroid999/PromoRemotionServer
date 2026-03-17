@@ -9,6 +9,12 @@ const __dirname = dirname(__filename);
 const USE_LAMBDA = process.env.REMOTION_USE_LAMBDA === 'true' || process.env.REMOTION_USE_LAMBDA === '1';
 const AWS_REGION = process.env.REMOTION_AWS_REGION || 'us-east-1';
 
+/** Whether rendering uses Remotion Lambda on AWS (vs local). */
+export const isLambdaEnabled = USE_LAMBDA;
+
+/** Render backend identifier: `'lambda'` (AWS) or `'local'`. */
+export const renderBackend = USE_LAMBDA ? 'lambda' : 'local';
+
 async function renderVideoLocal({ compositionId, inputProps, onProgress }) {
   const { bundle } = await import('@remotion/bundler');
   const { renderMedia, selectComposition } = await import('@remotion/renderer');

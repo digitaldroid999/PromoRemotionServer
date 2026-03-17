@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { TEMPLATE_MAP } from '../templates/templateMap.js';
-import { renderVideo } from '../render/renderVideo.js';
+import { renderVideo, renderBackend } from '../render/renderVideo.js';
 import { createTask, updateTask } from '../utils/taskManager.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -167,8 +167,10 @@ async function processVideoGenerationShopify(taskId, template, product, imageUrl
 // GET so callers can verify this is the Remotion API (not React Router)
 router.get('/', (_req, res) => {
   res.set('X-Service', 'Remotion-API');
+  res.set('X-Render-Backend', renderBackend);
   res.json({
     service: 'Remotion API',
+    renderBackend: renderBackend === 'lambda' ? 'aws' : 'local',
     message: 'Use POST to start video generation',
     postBody: { template: 'string', product: 'object', imageUrl: 'string', user_id: 'string', short_id: 'string' },
   });
