@@ -1,12 +1,12 @@
+// Load .env first so REMOTION_USE_LAMBDA etc. are set before any other module reads them
+import 'dotenv/config';
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import videoRoutes from './routes/videos.js';
 import videoShopifyRoutes from './routes/videos_shopify.js';
 import taskRoutes from './routes/tasks.js';
 import { renderBackend } from './render/renderVideo.js';
-
-dotenv.config();
 
 const app = express();
 
