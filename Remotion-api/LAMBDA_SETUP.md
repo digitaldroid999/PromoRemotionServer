@@ -96,11 +96,16 @@ REMOTION_SERVE_URL=https://remotionlambda-xxx.s3.us-east-1.amazonaws.com/sites/y
 
 # Optional: Lambda function name (if not set, a compatible function is auto-selected)
 # REMOTION_LAMBDA_FUNCTION_NAME=remotion-render-xxxx
+
+# Optional: Frames per Lambda (default 180). Increase when your account concurrency limit is raised.
+# Lower = more parallel Lambdas = faster but needs higher quota. New accounts often have limit 10.
+# REMOTION_FRAMES_PER_LAMBDA=180
 ```
 
 - **REMOTION_USE_LAMBDA**: set to `true` (or `1`) to use Lambda; otherwise rendering stays **local**.
 - **REMOTION_SERVE_URL**: required when using Lambda; from step 2.
 - **REMOTION_LAMBDA_FUNCTION_NAME**: optional; if omitted, the app uses `getFunctions({ compatibleOnly: true })` to pick a function.
+- **REMOTION_FRAMES_PER_LAMBDA**: optional; default `180`. Use a higher value (e.g. 180–300) if you hit "Rate Exceeded" / concurrency limit on new AWS accounts.
 
 ## 4. Redeploying after changes
 
@@ -115,8 +120,10 @@ REMOTION_SERVE_URL=https://remotionlambda-xxx.s3.us-east-1.amazonaws.com/sites/y
 
 ## 5. Concurrency and quotas
 
-- Check quotas: `npx remotion lambda quotas`
-- New AWS accounts may have a low Lambda concurrency limit; increase it in AWS if you need more parallel renders.
+- Check your limit: `npx remotion lambda quotas`
+- **New AWS accounts** often have a very low concurrency limit (e.g. 10 functions total). You’ll see "Rate Exceeded" if a render tries to use more Lambdas than allowed.
+- **Immediate fix:** the app uses `framesPerLambda: 180` by default (configurable via `REMOTION_FRAMES_PER_LAMBDA`). That keeps total Lambdas low: e.g. 1 orchestrator + (total frames ÷ 180) renderers. For a ~30s @ 30fps video that’s 1 + 5 = 6 functions. Tune the value so `(total frames ÷ REMOTION_FRAMES_PER_LAMBDA) + 1 ≤ your quota`.
+- **Long-term:** request a higher "Concurrent executions" quota for Lambda in [AWS Service Quotas](https://console.aws.amazon.com/servicequotas/home) (search for Lambda → Concurrent executions), or run `npx remotion lambda quotas increase` (needs root account).
 
 ## Summary
 

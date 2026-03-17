@@ -8,6 +8,8 @@ const __dirname = dirname(__filename);
 
 const USE_LAMBDA = process.env.REMOTION_USE_LAMBDA === 'true' || process.env.REMOTION_USE_LAMBDA === '1';
 const AWS_REGION = process.env.REMOTION_AWS_REGION || 'us-east-1';
+// Fewer Lambdas = stay under account concurrency limit. Increase when your quota is raised (see LAMBDA_SETUP.md).
+const FRAMES_PER_LAMBDA = Math.max(4, parseInt(process.env.REMOTION_FRAMES_PER_LAMBDA, 10) || 180);
 
 /** Whether rendering uses Remotion Lambda on AWS (vs local). */
 export const isLambdaEnabled = USE_LAMBDA;
@@ -94,6 +96,7 @@ async function renderVideoLambda({ compositionId, inputProps, onProgress }) {
     imageFormat: 'jpeg',
     maxRetries: 1,
     privacy: 'public',
+    framesPerLambda: FRAMES_PER_LAMBDA,
   });
 
   console.log(`📊 Render ID: ${renderId}, polling progress...`);
