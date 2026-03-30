@@ -38,8 +38,11 @@ function transformProductData(template, product) {
     return isNaN(numAmount) ? '$0.00' : `$${numAmount.toFixed(2)}`;
   };
 
+  // Watermark templates use the same product shape as their base template
+  const baseTemplate = template.replace(/-watermark$/, '');
+
   // Transform based on template type
-  switch (template) {
+  switch (baseTemplate) {
     case 'product-modern-v1':
       // ProductHero template expects: title, price, rating
       return {

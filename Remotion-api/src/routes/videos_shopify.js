@@ -39,7 +39,9 @@ function transformProductData(template, product) {
     return isNaN(numAmount) ? '$0.00' : `$${numAmount.toFixed(2)}`;
   };
 
-  switch (template) {
+  const baseTemplate = template.replace(/-watermark$/, '');
+
+  switch (baseTemplate) {
     case 'product-modern-v1':
       return { title: name, price: price, rating: rating };
 

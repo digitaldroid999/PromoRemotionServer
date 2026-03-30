@@ -54,8 +54,11 @@ From the **Remotion-api** directory, set AWS credentials (see step 3 below), the
 **Deploy the render function (once per Remotion version):**
 
 ```bash
-npx remotion lambda functions deploy
+# Recommended: use a 300–540s timeout so each chunk has time to finish (default is 120s; often too low for image-heavy compositions)
+npx remotion lambda functions deploy --timeout=300
 ```
+
+Max timeout is 900 seconds. If you see "The main function timed out after 119999ms" or "chunks are missing", redeploy with a higher `--timeout` (e.g. 300 or 540).
 
 Note the **function name** (e.g. `remotion-render-xxxx`). You can also leave it unset and let the app discover it.
 
@@ -113,12 +116,23 @@ REMOTION_SERVE_URL=https://remotionlambda-xxx.s3.us-east-1.amazonaws.com/sites/y
   ```bash
   npx remotion lambda sites create ../Remotion/src/index.ts --site-name=remotion-api-video
   ```
-- **Remotion package upgrade**: redeploy the **function**:
+- **Remotion package upgrade** or **timeout too low**: redeploy the **function** (use same `--timeout` as above if you increased it):
   ```bash
-  npx remotion lambda functions deploy
+  npx remotion lambda functions deploy --timeout=300
   ```
 
-## 5. Concurrency and quotas
+## 5. "Main function timed out" / chunks missing
+
+If you see **"The main function timed out after 119999ms"** or **"The following chunks are missing"**, the Lambda function’s timeout (default 120s) is too low for the work per chunk.
+
+- **Fix:** Redeploy the function with a higher timeout (AWS max 900s):
+  ```bash
+  npx remotion lambda functions deploy --timeout=300
+  ```
+  Or 540 if your compositions are heavy. After redeploy, new renders will use the new timeout.
+- **Optional workaround** (if you can’t redeploy yet): lower `REMOTION_FRAMES_PER_LAMBDA` (e.g. 60) so each chunk does less work and might finish in 120s. That uses more concurrent Lambdas, so stay within your account concurrency limit.
+
+## 6. Concurrency and quotas
 
 - Check your limit: `npx remotion lambda quotas`
 - **New AWS accounts** often have a very low concurrency limit (e.g. 10 functions total). You’ll see "Rate Exceeded" if a render tries to use more Lambdas than allowed.
